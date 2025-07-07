@@ -1,39 +1,45 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
 
-import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
-
-import { fetchMovies } from "@/services/api";
-
 import MovieDisplayCard from "@/components/MovieCard";
 import SearchBar from "@/components/SearchBar";
+import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
+import { fetchMovies } from "@/services/api";
+import { updateSearchCount } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const {
-    data: movies = [],
+    data: movies = {},
     loading,
     error,
     refetch: loadMovies,
     reset,
   } = useFetch(() => fetchMovies({ query: searchQuery }), false);
 
-  // Debounced search effect
+  // Debounced search effect: only fetch movies
   useEffect(() => {
-    const timeoutId = setTimeout(async () => {
+    const timeoutId = setTimeout(() => {
       if (searchQuery.trim()) {
-        await loadMovies();
+        loadMovies();
       } else {
         reset();
       }
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
+
+  // Update search count after movies are fetched
+  useEffect(() => {
+    if (searchQuery.trim() && movies?.results && movies.results[0]) {
+      updateSearchCount(searchQuery, movies.results[0]);
+    }
+  }, [movies, searchQuery]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
