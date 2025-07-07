@@ -39,7 +39,8 @@ const Search = () => {
     if (searchQuery.trim() && movies?.results && movies.results[0]) {
       updateSearchCount(searchQuery, movies.results[0]);
     }
-  }, [movies, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movies?.results]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
